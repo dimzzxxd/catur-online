@@ -1,151 +1,161 @@
 <!DOCTYPE html><html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catur Hitam‑Putih Online</title>
-  <!-- ============ STYLE ============ -->
+  <!-- Chessboard.js -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/css/chessboard.min.css" integrity="sha512-kaKO40qC5YgCXSJ4gHtYgb9b0JY0UB3QWg9t5TszgKQBHV0SIFHxJ+A63HItDJSu7Z7ufMybX9tPyWpfFiVckA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    :root{
-      --dark:#000;--light:#fff;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--dark);color:var(--light);font-family:system-ui,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
-    h1{margin:1rem 0;font-size:1.5rem;text-align:center}
-    #board{width:min(90vw,360px);max-width:360px;border-radius:8px;box-shadow:0 0 18px rgba(255,255,255,.25)}
-    .panel{width:100%;max-width:420px;padding:1rem;display:flex;flex-direction:column;gap:.75rem}
-    input,button{font-size:1rem;padding:.8rem;border-radius:6px;border:none}
-    input{background:#222;color:var(--light);letter-spacing:.05em}
-    button{background:var(--light);color:var(--dark);font-weight:700;cursor:pointer}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .code-display{font-weight:800;text-align:center;letter-spacing:.12em;background:#111;padding:.6rem;border-radius:6px}
-    .hide{display:none!important}
-    footer{margin-top:auto;font-size:.8rem;opacity:.6;padding:1rem;text-align:center}
+    body{font-family:system-ui,Helvetica,Arial,sans-serif;margin:0;padding:0;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+    header{padding:1rem;text-align:center}
+    #board{max-width:90vw;width:350px;margin:0 auto;box-shadow:0 0 20px rgba(255,255,255,.3);border-radius:8px}
+    .panel{width:100%;max-width:420px;padding:1rem}
+    input,button{width:100%;padding:.8rem;border:none;border-radius:6px;font-size:1rem;margin-top:.5rem}
+    input{background:#222;color:#fff}
+    button{background:#fff;color:#000;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.4;cursor:not-allowed}
+    .code-display{margin-top:.5rem;font-weight:700;font-size:1.2rem;letter-spacing:.1em;text-align:center}
   </style>
 </head>
 <body>
-  <h1>Catur Hitam‑Putih Online ♟️</h1>
-  <div id="board"></div>  <!-- ===== Lobby ===== -->  <section class="panel" id="lobby">
-    <button id="createBtn">Buat Ruangan (Host)</button>
-    <div id="hostSection" class="hide">
-      <p style="margin:0;text-align:center">Bagikan kode ini👇</p>
-      <div class="code-display" id="inviteCode"></div>
-    </div>
-    <hr style="width:100%;opacity:.2">
-    <input type="text" id="joinCode" placeholder="Masukkan kode ruangan" autocomplete="off" maxlength="6">
+  <header>
+    <h1>Catur Hitam‑Putih Online ♟️</h1>
+  </header>
+  <div id="board"></div>
+  <section class="panel" id="lobby">
+    <button id="createBtn">Buat Ruangan & Bagikan Kode</button>
+    <div class="code-display" id="inviteCode" hidden></div>
+    <input type="text" id="joinCode" placeholder="Masukkan kode ruangan...">
     <button id="joinBtn">Gabung</button>
-  </section>  <footer>v1.0 • by Aira for Dimas</footer>  <!-- ============ DEPENDENCIES ============ -->  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js" integrity="sha512-kyR0Ol0gRzRJQvd/6KSbTJk6mxPgSC+IbUAc5IFadInrlvDmMt04BuuSNMhIccQm14gZ+CGX9B7K8+4B3pZ9nQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/js/chessboard.min.js" integrity="sha512-xVFi8j3GtRPoU4UVnAMvK11ibrT+oHiJ62VZFz6tItSfQOQ8rW09qEiXME3x+RqikvR2PT1AZLkZPT32H+30Ow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>  <!-- Firebase SDK (compat) -->  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>  <!-- ============ APP SCRIPT ============ -->  <script>
-  (function(){
-    // ---------- CONFIG EDIT DI SINI ----------
-    const firebaseConfig = {
+  </section><!-- Dependensi --><script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js" integrity="sha512-kyR0Ol0gRzRJQvd/6KSbTJk6mxPgSC+IbUAc5IFadInrlvDmMt04BuuSNMhIccQm14gZ+CGX9B7K8+4B3pZ9nQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/js/chessboard.min.js" integrity="sha512-xVFi8j3GtRPoU4UVnAMvK11ibrT+oHiJ62VZFz6tItSfQOQ8rW09qEiXME3x+RqikvR2PT1AZLkZPT32H+30Ow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Firebase SDK --><script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script><script>
+  /* ===== 1. Konfigurasi Firebase ===== */
+  // Ganti value berikut dengan konfigurasi proyek Firebase kamu ⚠️
+  const firebaseConfig = {
   apiKey: "AIzaSyDI7I6ZDOa8_LLCSMEHyBlTJp92z8js67c",
   authDomain: "catur-67f19.firebaseapp.com",
+  databaseURL: "https://catur-67f19-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "catur-67f19",
-  storageBucket: "catur-67f19.firebasestorage.app",
+  storageBucket: "catur67f19.appspot.com",
   messagingSenderId: "768380276237",
-  appId: "1:768380276237:web:ec95c6263375ab1ae0cf44",
-  measurementId: "G-47R9P25VK7"
+  appId: "1:768380276237:web:ec95c6263375ab1ae0cf44"
 };
-    // ----------------------------------------
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // Early check → kalau masih placeholder ➜ remind user & stop eksekusi
-    if(Object.values(firebaseConfig).some(v=>String(v).includes('YOUR_'))){
-      alert('⚠️ Kamu belum mengisi firebaseConfig!\n\nPergi ke Firebase Console → bagian SDK snippet → ganti objek firebaseConfig di HTML ini.');
-      return;
-    }
+  /* ===== 2. Variabel Global ===== */
+  const chess = new Chess();
+  let board;           // chessboard.js instance
+  let roomCode;        // string kode ruangan
+  let myColor = 'white';// warna pemain ini
+  let roomRef;         // referensi database ruangan
+  let isMyTurn = false;
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  /* ===== 3. Fungsi Util ===== */
+  const genCode = len=>Math.random().toString(36).substring(2,2+len).toUpperCase();
+  const qs = sel=>document.querySelector(sel);
 
-    const qs = sel=>document.querySelector(sel);
-    const chess = new Chess();
-    let board, roomRef, roomCode, myColor='white', isMyTurn=false;
-
-    // === UI Functions ===
-    function show(el){el.classList.remove('hide');}
-    function hide(el){el.classList.add('hide');}
-
-    // === Generate 6-char code ===
-    const genCode = ()=>Math.random().toString(36).substr(2,6).toUpperCase();
-
-    // === Init Board ===
-    function initBoard(){
-      board = Chessboard('board',{
-        orientation:myColor,
-        draggable:true,
-        pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        position:chess.fen(),
-        onDragStart:(src,piece)=>{
-          if(!isMyTurn) return false;
-          if(myColor==='white' && piece.startsWith('b')) return false;
-          if(myColor==='black' && piece.startsWith('w')) return false;
-        },
-        onDrop:(src,dst)=>{
-          const move = chess.move({from:src,to:dst,promotion:'q'});
-          if(!move) return 'snapback';
-          pushState();
-          isMyTurn=false;
-        },
-        onSnapEnd:()=> board.position(chess.fen())
-      });
-    }
-
-    // === Firebase helpers ===
-    function pushState(){
-      roomRef.set({fen: chess.fen(), turn: chess.turn()});
-    }
-
-    function handleUpdate(snap){
-      const data = snap.val();
-      if(!data) return;
-      chess.load(data.fen);
-      board.position(chess.fen());
-      isMyTurn = (data.turn==='w' && myColor==='white') || (data.turn==='b' && myColor==='black');
-    }
-
-    async function createRoom(){
-      try{
-        roomCode = genCode();
-        myColor = 'white';
-        chess.reset();
-        roomRef = db.ref('rooms/'+roomCode);
-        await roomRef.set({fen: chess.fen(), turn:'w'});
-        roomRef.on('value',handleUpdate);
-        qs('#inviteCode').textContent = roomCode;
-        show(qs('#hostSection'));
-        hide(qs('#lobby'));
-        initBoard();
-        handleUpdate({val:()=>({fen: chess.fen(), turn:'w'})});
-      }catch(e){
-        alert('Gagal membuat ruangan: '+e.message+'\nCek koneksi & rules database.');
-      }
-    }
-
-    async function joinRoom(code){
-      try{
-        roomCode = code.toUpperCase();
-        roomRef = db.ref('rooms/'+roomCode);
-        const snap = await roomRef.once('value');
-        if(!snap.exists()) return alert('❌ Ruangan tidak ditemukan');
-        myColor = 'black';
-        chess.load(snap.val().fen);
-        roomRef.on('value',handleUpdate);
-        hide(qs('#lobby'));
-        initBoard();
-        handleUpdate(snap);
-      }catch(e){
-        alert('Gagal join ruangan: '+e.message);
-      }
-    }
-
-    // === Event listeners ===
-    qs('#createBtn').addEventListener('click', createRoom);
-    qs('#joinBtn').addEventListener('click',()=>{
-      const code = qs('#joinCode').value.trim();
-      if(code.length!==6) return alert('Kode harus 6 karakter');
-      joinRoom(code);
+  /* ===== 4. Setup Board ===== */
+  function initBoard(){
+    board = Chessboard('board',{
+      draggable:true,
+      position:'start',
+      orientation:myColor,
+      pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+      onDragStart:(src, piece)=>{
+        if(!isMyTurn) return false;
+        if(myColor==='white' && piece.search(/^b/)!==-1) return false;
+        if(myColor==='black' && piece.search(/^w/)!==-1) return false;
+      },
+      onDrop:(src,dst)=>{
+        const move = chess.move({from:src,to:dst,promotion:'q'});
+        if(move===null){return 'snapback';}
+        pushState();
+        isMyTurn=false;
+      },
+      onSnapEnd:()=> board.position(chess.fen())
     });
+  }
 
-  })();
-  </script></body>
+  /* ===== 5. Firebase Helpers ===== */
+  async function createRoom(){
+    try{
+      if(firebaseConfig.apiKey.startsWith('YOUR')){
+        alert('⚠️ Kamu belum mengisi konfigurasi Firebase. Edit variabel firebaseConfig dulu, ya!');
+        return;
+      }
+      roomCode = genCode(6);
+      myColor = 'white';
+      roomRef = db.ref('rooms/'+roomCode);
+      await roomRef.set({fen: chess.fen(), turn:'w'});
+      roomRef.on('value', handleUpdate);
+      qs('#inviteCode').hidden = false;
+      qs('#inviteCode').textContent = roomCode;
+      transitionToGame();
+    }catch(err){
+      console.error(err);
+      alert('Gagal membuat ruangan → '+err.message+'
+• Pastikan koneksi internet oke
+• Cek konfigurasi Firebase & Rules Realtime Database');
+    }
+  });
+    roomRef.on('value',handleUpdate);
+    qs('#inviteCode').hidden=false;
+    qs('#inviteCode').textContent=roomCode;
+    transitionToGame();
+  }
+
+  async function joinRoom(code){
+    try{
+      roomCode = code.toUpperCase();
+      roomRef = db.ref('rooms/'+roomCode);
+      const snap = await roomRef.once('value');
+      if(!snap.exists()){
+        alert('Ruangan tidak ditemukan 😢');
+        return;
+      }
+      myColor = 'black';
+      chess.load(snap.val().fen);
+      board.position(chess.fen());
+      roomRef.on('value', handleUpdate);
+      transitionToGame();
+    }catch(err){
+      console.error(err);
+      alert('Gagal join ruangan → '+err.message+'
+Cek koneksi & konfigurasi Firebase');
+    }
+  }
+    myColor='black';
+    chess.load(snap.val().fen);
+    board.position(chess.fen());
+    roomRef.on('value',handleUpdate);
+    transitionToGame();
+  }
+
+  function pushState(){
+    roomRef.set({fen: chess.fen(), turn: chess.turn()});
+  }
+
+  function handleUpdate(snap){
+    const data=snap.val();
+    if(!data) return;
+    chess.load(data.fen);
+    board.position(chess.fen());
+    isMyTurn = (data.turn==='w' && myColor==='white') || (data.turn==='b' && myColor==='black');
+  }
+
+  /* ===== 6. UI Transitions ===== */
+  function transitionToGame(){
+    qs('#lobby').style.display='none';
+    initBoard();
+    handleUpdate({val:()=>({fen: chess.fen(), turn:'w'})});
+  }
+
+  /* ===== 7. Event Listeners ===== */
+  qs('#createBtn').onclick=createRoom;
+  qs('#joinBtn').onclick=()=>{
+    const code=qs('#joinCode').value.trim();
+    if(code.length<4){alert('Kode kurang valid');return;}
+    joinRoom(code);
+  };
+</script></body>
 </html>
